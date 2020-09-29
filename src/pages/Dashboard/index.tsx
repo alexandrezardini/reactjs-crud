@@ -27,9 +27,13 @@ const Dashboard: React.FC = () => {
 
   useEffect(() => {
     async function loadFoods(): Promise<void> {
-      const response = await api.get('/foods');
+      try {
+        const response = await api.get('/foods');
 
-      setFoods(response.data);
+        setFoods(response.data);
+      } catch (err) {
+        console.log(err);
+      }
     }
 
     loadFoods();
@@ -38,14 +42,10 @@ const Dashboard: React.FC = () => {
   async function handleAddFood(
     food: Omit<IFoodPlate, 'id' | 'available'>,
   ): Promise<void> {
-    const { description, image, name, price } = food;
     try {
       const response = await api.post('/foods', {
-        id: Math.random().toString(),
-        name,
-        price,
-        image,
-        description,
+        ...food,
+        available: true,
       });
 
       setFoods([...foods, response.data]);
@@ -57,27 +57,31 @@ const Dashboard: React.FC = () => {
   async function handleUpdateFood(
     food: Omit<IFoodPlate, 'id' | 'available'>,
   ): Promise<void> {
-    const { price, name, description, image } = food;
-    const response = await api.put(`/foods/${editingFood.id}`, {
-      image,
-      name,
-      price,
-      description,
-    });
+    try {
+      const response = await api.put(`/foods/${editingFood.id}`, {
+        ...food,
+      });
 
-    setEditingFood(response.data);
+      setEditingFood(response.data);
 
-    const updatedFoods = foods.filter(item => item.id !== response.data.id);
+      const updatedFoods = foods.filter(item => item.id !== response.data.id);
 
-    setFoods([...updatedFoods, response.data]);
+      setFoods([...updatedFoods, response.data]);
+    } catch (err) {
+      console.log(err);
+    }
   }
 
   async function handleDeleteFood(id: number): Promise<void> {
-    const updatedFoods = foods.filter(item => item.id !== id);
+    try {
+      const updatedFoods = foods.filter(item => item.id !== id);
 
-    api.delete(`/foods/${id}`);
+      api.delete(`/foods/${id}`);
 
-    setFoods(updatedFoods);
+      setFoods(updatedFoods);
+    } catch (err) {
+      console.log(err);
+    }
   }
 
   function toggleModal(): void {
